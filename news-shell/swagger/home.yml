@@ -1,0 +1,45 @@
+components:
+  schemas:
+    Home:
+      type: object
+      properties:
+        user_nickname:
+          type: string
+          description: 유저 닉네임
+        alarm_cnt:
+          type: integer
+          description: 알람 수
+        categorys:
+          type: array
+          description: 카테고리 목록
+          items:
+            type: object
+            properties:
+              category_id:
+                type: integer
+              category_name:
+                type: string
+        keywords:
+          type: array
+          description: 키워드 목록
+          items:
+            type: object
+            properties:
+              category_id:
+                type: integer
+              category_name:
+                type: string
+              keyword_id:
+                type: integer
+              keyword_name:
+                type: string
+              is_follow:
+                type: boolean
+              follow_cnt:
+                type: integer
+              follow_user_profiles:
+                type: array
+                items:
+                  type: string
+              reaction_cnt:
+                type: integer
