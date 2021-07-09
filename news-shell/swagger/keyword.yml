@@ -1,0 +1,120 @@
+components:
+  schemas:
+    Keyword:
+      type: object
+      properties:
+        alarm_cnt:
+          type: integer
+          description: 알람 수
+        category_name:
+          type: string
+          description: 카테고리 이름
+        keyword_id:
+          type: integer
+          description: 키워드 ID
+        keyword_name:
+          type: string
+          description: 키워드 이름
+        last_updated_at:
+          type: datetime
+        is_follow:
+          type: boolean
+          description: 팔로우 여부
+        follow_cnt:
+          type: integer
+          description: 팔로우 수
+        follow_user_profiles:
+          type: array
+          description: 팔로우 유저 프로필 url 목록
+          items:
+            type: string
+        timeline: 
+          type: object
+          description: 기사 타임라인 탭
+          properties:
+            new_article:
+              type: object
+              properties:
+                article_id:
+                  type: integer
+                article_title:
+                  type: string
+                article_summary:
+                  type: string
+                is_bookmark:
+                  type: boolean
+                is_hot:
+                  type: boolean
+                company:
+                  type: string
+                reporter_name:
+                  type: string
+                create_datetime:
+                  type: datetime
+                link:
+                  type: string
+            articles:
+              type: array
+              items:
+                type: object
+                properties:
+                  article_id:
+                    type: integer
+                  article_title:
+                    type: string
+                  article_summary:
+                    type: string
+                  is_bookmark:
+                    type: boolean
+                  is_hot:
+                    type: boolean
+                  company:
+                    type: string
+                  reporter_name:
+                    type: string
+                  create_datetime:
+                    type: datetime
+                  link:
+                    type: string
+        graph:
+          type: object
+          description: 키워드 분석 그래프
+          properties:
+            gender:
+              type: object
+              properties:
+                female:
+                  type: integer
+                male:
+                  type: integer
+            age:
+              type: object
+              properties:
+                age10:
+                  type: integer
+                age20:
+                  type: integer
+                age30:
+                  type: integer
+                age40:
+                  type: integer
+                age50:
+                  type: integer
+                age60:
+                  type: integer 
+            reaction:
+              type: object
+              properties:
+                like: 
+                  type: integer
+                hate: 
+                  type: integer
+            cloud_text:
+              type: array
+              items:
+                type: object
+                properties:
+                  priority:
+                    type: integer
+                  text:
+                    type: string
