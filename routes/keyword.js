@@ -49,7 +49,7 @@ router.get('/:keyword_id', function(req, res) {
         "new_article": {
           "article_id": 11,
           "article_title": "제목",
-          "article_summary": "요약요약요약",
+          "article_summary": "요약요약요약\n요약요약요약\n요약요약요약",
           "is_bookmark": false,
           "is_hot": false,
           "company": "경향 신문",
@@ -60,30 +60,43 @@ router.get('/:keyword_id', function(req, res) {
         "articles": [{
           "article_id": 12,
           "article_title": "제목",
-          "article_summary": "요약요약요약",
+          "article_summary": "요약요약요약\n요약요약요약\n요약요약요약",
           "is_bookmark": false,
           "is_hot": false,
           "company": "경향 신문",
           "reporter_name": "홍길동",
-          "create_datetime": "2021-07-07 14:00:00",
+          "create_datetime": "2021-07-06 14:00:00",
           "link": "https://t1.kakaocdn.net/kakaocorp/corp_thumbnail/Kakao.png"
         }, {
           "article_id": 13,
           "article_title": "제목",
-          "article_summary": "요약요약요약",
+          "article_summary": "요약요약요약\n요약요약요약\n요약요약요약",
           "is_bookmark": false,
           "is_hot": false,
           "company": "경향 신문",
           "reporter_name": "홍길동",
-          "create_datetime": "2021-07-07 14:00:00",
+          "create_datetime": "2021-07-05 14:00:00",
           "link": "https://t1.kakaocdn.net/kakaocorp/corp_thumbnail/Kakao.png"
         }]
       },
       "graph": {
-        "gender": {},
-        "age": {},
-        "reaction": {},
-        "cloud_text": []
+        "gender": {
+          "female": 10,
+          "male": 20
+        },
+        "age": {
+          "age10": 0,
+          "age20": 20,
+          "age30": 10,
+          "age40": 10,
+          "age50": 34,
+          "age60": 34
+        },
+        "reaction": {
+          "like": 44,
+          "hate": 33
+        },
+        "word_cloud_url": "http://drive.google.com/uc?export=view&id=1EJ_QsWTFRaEbm2PEiPh8jbEjlFefPRDR"
       }
   });
 });
