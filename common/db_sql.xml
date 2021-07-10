@@ -40,7 +40,7 @@
              , b.follow_cnt as follow_cnt
              , b.follow_user_profiles as follow_user_profiles
              , a.view_cnt as view_cnt
-             , d.comment_cnt as comment_cnt
+             , ifnull(d.comment_cnt, 0) as comment_cnt
           from keyword a 
           left join (select f.keyword_id, count(f.id) as follow_cnt, group_concat(u.profile_url separator ';') as follow_user_profiles
                        from follow f 
@@ -52,11 +52,85 @@
                       where user_id = ${user_id}
                         and is_follow = 1
                     ) c on a.id = c.keyword_id
-          left join (select keyword_id, sum(comment_cnt) as comment_cnt 
+          left join (select keyword_id, sum(ifnull(comment_cnt, 0)) as comment_cnt 
                        from article a2 
                     ) d on a.id = d.keyword_id
          where 1=1 
          order by view_cnt desc, id desc
+    </select>
+
+    <select id="selKeywordInfo">
+        select a.category_id as category_id
+             , a.category_name as category_name
+             , a.id as keyword_id
+             , a.name as keyword_name
+             , d.last_updated_at as last_updated_at
+             , ifnull(c.is_follow, 0) as is_follow
+             , b.follow_cnt as follow_cnt
+             , b.follow_user_profiles as follow_user_profiles
+             , d.graph_gender_f as graph_gender_f
+             , d.graph_gender_m as graph_gender_m
+             , d.graph_age10 as graph_age10
+             , d.graph_age20 as graph_age20
+             , d.graph_age30 as graph_age30
+             , d.graph_age40 as graph_age40
+             , d.graph_age50 as graph_age50
+             , d.graph_age60 as graph_age60
+             , d.graph_reaction_like as graph_reaction_like
+             , d.graph_reaction_hate as graph_reaction_hate
+             , a.word_cloud as word_cloud_url
+          from keyword a 
+          left join (select f.keyword_id, count(f.id) as follow_cnt, group_concat(u.profile_url separator ';') as follow_user_profiles
+                       from follow f 
+                       left join user u on f.user_id = u.id
+                      where f.keyword_id = ${keyword_id}
+                      group by 1
+                    ) b on a.id = b.keyword_id
+          left join (select keyword_id, is_follow
+                       from follow 
+                      where user_id = ${user_id}
+                        and is_follow = 1
+                        and keyword_id = ${keyword_id}
+                    ) c on a.id = c.keyword_id
+          left join (select keyword_id
+                          , MAX(create_datetime) as last_updated_at
+                          , TRUNCATE(sum(graph_gender_f) / count(1), 0) as graph_gender_f
+                          , TRUNCATE(sum(graph_gender_m) / count(1), 0) as graph_gender_m 
+                          , TRUNCATE(sum(graph_age10) / count(1), 0) as graph_age10
+                          , TRUNCATE(sum(graph_age20) / count(1), 0) as graph_age20
+                          , TRUNCATE(sum(graph_age30) / count(1), 0) as graph_age30
+                          , TRUNCATE(sum(graph_age40) / count(1), 0) as graph_age40
+                          , TRUNCATE(sum(graph_age50) / count(1), 0) as graph_age50
+                          , TRUNCATE(sum(graph_age60) / count(1), 0) as graph_age60
+                          , sum(graph_reaction_like) as graph_reaction_like
+                          , sum(graph_reaction_hate) as graph_reaction_hate
+                       from article a2
+                      where keyword_id = ${keyword_id}
+                      group by 1
+                    ) d on a.id = d.keyword_id
+         where 1=1
+           and a.id = ${keyword_id}
+    </select>
+
+    <select id="selTimelineList">
+        select a.id as article_id
+             , a.title as article_title 
+             , a.summary as article_summary
+             , ifnull(b.is_bookmark, 0) as is_bookmark
+             , case when a.comment_cnt >= 100 then 1 else 0 end as is_hot 
+             , a.company as company 
+             , a.reporter_name as reporter_name 
+             , a.create_datetime as create_datetime 
+             , a.link_url as link 
+          from article a 
+          left join (select article_id, is_bookmark
+                       from bookmark b2 
+                      where 1=1 
+                        and user_id = ${user_id}
+               ) b on a.id = b.article_id
+         where 1=1 
+           and keyword_id = ${keyword_id}
+         order by a.create_datetime desc
     </select>
 
     <!-- <select id="selWorkTotal">

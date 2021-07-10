@@ -30,7 +30,7 @@ let mybatisMapper = require('../common/mybatis').mybatisMapper;
 router.route('/').get(function (req, res, next) {
   let user_id = (req.query.userId !== undefined) ? req.query.userId : -1;
 
-  if (user_id != 1) {
+  if (user_id == 0) {
     return res.status(200).json({
       "user_nickname" : "tester_a",
       "alarm_cnt": 4,

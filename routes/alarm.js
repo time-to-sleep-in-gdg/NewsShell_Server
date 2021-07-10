@@ -35,7 +35,7 @@ let mybatisMapper = require('../common/mybatis').mybatisMapper;
     });
   }
 
-  if (user_id != 1) {
+  if (user_id == 0) {
     return res.status(200).json({
       "alarms": [{
         "type": "keyword",

@@ -1,5 +1,7 @@
-var express = require('express');
-var router = express.Router();
+let express = require('express');
+let router = express.Router();
+let async = require('async');
+let mybatisMapper = require('../common/mybatis').mybatisMapper;
 
 /* GET home page. */
 /**
@@ -31,8 +33,12 @@ var router = express.Router();
  *              $ref: '#/components/schemas/Keyword'
  */
 
-router.get('/:keyword_id', function(req, res) {
-  res.status(200).json({
+router.route('/:keyword_id').get(function (req, res, next) {   //.get('/:keyword_id', function(req, res) {
+  let keyword_id = parseInt(req.params.keyword_id);
+  let user_id = (req.query.userId !== undefined) ? req.query.userId : -1;
+
+  if (keyword_id == 0) {
+    return res.status(200).json({
       "alarm_cnt": 4,
       "category_name": "경제",
       "keyword_id": 2,
@@ -98,6 +104,115 @@ router.get('/:keyword_id', function(req, res) {
         },
         "word_cloud_url": "http://drive.google.com/uc?export=view&id=1EJ_QsWTFRaEbm2PEiPh8jbEjlFefPRDR"
       }
+    });
+  }
+
+  // FUNC
+  function getConnection(callback) {
+    req.database.getConnection(function (err, connection) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, connection);
+      }
+    });
+  }
+
+  function selKeywordInfo(connection, callback) {
+    let param;
+    let query;
+    try {
+      param = {
+        user_id: user_id,
+        keyword_id: keyword_id
+      };
+      query = mybatisMapper.getStatement('apiMapper', 'selKeywordInfo', param, {language: 'sql', indent: '  '});
+
+    } catch (err) {
+      connection.release();
+      callback(err);
+    }
+
+    connection.query(query, function (err, keywordInfo) {
+      if (err) {
+        connection.release();
+        callback(err);
+      } else {
+        callback(null, connection, keywordInfo);
+      }
+    });
+  }
+
+  function selTimelineList(connection, keywordInfo, callback) {
+    let param;
+    let query;
+    try {
+      param = {
+        user_id: user_id,
+        keyword_id: keyword_id
+      };
+      query = mybatisMapper.getStatement('apiMapper', 'selTimelineList', param, {language: 'sql', indent: '  '});
+
+    } catch (err) {
+      connection.release();
+      callback(err);
+    }
+
+    connection.query(query, function (err, timelineList) {
+      connection.release();
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, keywordInfo, timelineList);
+      }
+    });
+  }
+
+  function resultJSON(keywordInfo, timelineList, callback) {
+    let result = {
+      "alarm_cnt": keywordInfo[0].alarm_cnt,
+      "category_name": keywordInfo[0].category_name,
+      "keyword_id": keywordInfo[0].keyword_id,
+      "keyword_name": keywordInfo[0].keyword_name,
+      "last_updated_at": keywordInfo[0].last_updated_at,
+      "is_follow": keywordInfo[0].is_follow,
+      "follow_cnt": keywordInfo[0].follow_cnt,
+      "follow_user_profiles": keywordInfo[0].follow_user_profiles.split(";", 3),
+      "timeline": {
+        "new_article": timelineList[0],
+        "articles": timelineList.slice(1)
+      },
+      "graph": {
+        "gender": {
+          "female": keywordInfo[0].graph_gender_f,
+          "male": keywordInfo[0].graph_gender_m
+        },
+        "age": {
+          "age10": keywordInfo[0].graph_age10,
+          "age20": keywordInfo[0].graph_age20,
+          "age30": keywordInfo[0].graph_age30,
+          "age40": keywordInfo[0].graph_age40,
+          "age50": keywordInfo[0].graph_age50,
+          "age60": keywordInfo[0].graph_age60,
+        },
+        "reaction": {
+          "like": keywordInfo[0].graph_reaction_like,
+          "hate": keywordInfo[0].graph_reaction_hate,
+        },
+        "word_cloud_url": keywordInfo[0].word_cloud_url
+      }
+    };
+    callback(null, result);
+  }
+
+  async.waterfall([getConnection, selKeywordInfo, selTimelineList, resultJSON], function (err, result) {
+    if (err) {
+      let new_err = new Error('키워드 조회에 실패하였습니다');
+      new_err.status = err.status;
+      next(new_err);
+    } else {
+      res.json(result);
+    }
   });
 });
 
