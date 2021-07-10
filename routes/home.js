@@ -168,7 +168,7 @@ router.route('/').get(function (req, res, next) {
           "category_name": i.category_name,
           "keyword_id": i.keyword_id,
           "keyword_name": i.keyword_name,
-          "is_follow": i.is_follow,
+          "is_follow": Boolean(i.is_follow),
           "follow_cnt": i.follow_cnt,
           "follow_user_profiles": i.follow_user_profiles.split(";", 3),
           "view_cnt": parseInt(i.view_cnt),
