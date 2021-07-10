@@ -2,7 +2,6 @@
 
 ## install
 ```
-cd news-shell
 npm install
 ```
 
