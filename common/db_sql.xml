@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="apiMapper">
+
+    <select id="selAlarmList">
+        select type, title, message, create_datetime
+          from alarm
+         where 1=1
+           and user_id = ${user_id}
+         order by create_datetime desc
+    </select>
+
+    <!-- <select id="selWorkTotal">
+        select count(*) as total_cnt
+        from (select a.id, a.weekday, a.work_status, a.title, a.intro, b.id as "author_id", b.author_name as "author",
+        c.genre as "category", a.register_date, e.epi_date
+        from work a
+        left join author b on (a.author_id = b.id)
+        left join category c on (a.category_id = c.id)
+        left join (select work_id, max(register_date) as epi_date
+        from episode
+        group by work_id) e on (a.id = e.work_id)
+        order by a.id desc) a
+        where 1 = 1
+        <if test="weekday != null and weekday !='' and weekday != 'all'">
+            and a.weekday = #{weekday}
+        </if>
+        <if test="work_status != null and work_status !=''">
+            and a.work_status = #{work_status}
+        </if>
+        <if test="author_id != null and author_id !=''">
+            and a.author_id = ${author_id}
+        </if>
+        <if test="search != null and search !=''">
+            and (a.title like '%${search}%' or
+            a.intro like '%${search}%'
+            )
+        </if>
+    </select>
+
+    <select id="selWorkTitle">
+        select w.title as "work_title", a.author_name, w.intro as "work_desc", c.genre as work_genre
+        from work w
+        left join author a on (w.author_id = a.id)
+        left join category c on (w.category_id = c.id)
+        where w.id = ${work_id}
+
+    </select>
+
+    <insert id="addWork">
+        insert into work( category_id, author_id, weekday, title, intro, work_status, permission)
+        values (${category_id}, ${author_id}, #{weekday}
+                , #{title}, #{intro}, #{work_status}, #{permission})
+    </insert>
+
+    <delete id="delWork">
+        delete from work
+        where id = ${item_id}
+    </delete>
+
+    <delete id="delWorkWithEpi">
+        delete from episode
+        where work_id = ${item_id}
+    </delete>
+
+    <delete id="delWorkWithEpiCmt">
+        delete A from epi_comment A
+        LEFT JOIN episode B on A.episode_id = B.id
+        where B.work_id = ${item_id}
+    </delete>
+
+    <delete id="delWorkWithEpiCmtPfr">
+        delete A from comment_preference A
+        LEFT JOIN epi_comment B on A.comment_id = B.id
+        LEFT JOIN episode C on B.episode_id = C.id
+        where C.work_id = ${item_id}
+    </delete>
+
+    <select id="selEpisodeTotal">
+        select count(*) as total_cnt
+        from episode a
+        where work_id = ${work_id}
+      </select>
+
+    <select id="selEpiList">
+        select a.epi_id, a.epi_no, a.epi_title, a.epi_register_date, a.update
+        from (
+        select e.id as "epi_id", e.no as "epi_no", e.title as "epi_title", e.register_date as "epi_register_date"
+        , w.category_id as "category_id"
+        , if(DATE(DATE_ADD(e.register_date, INTERVAL 1 DAY)) <![CDATA[ > ]]> DATE(NOW()), true, false ) as "update"
+        from episode e left join work w on (e.work_id = w.id)
+        where e.work_id = ${work_id}
+        order by epi_id desc) a
+        <if test="page_size != null and page_size !=''">
+            limit ${page_size}
+        </if>
+        <if test="page_num != null and page_num !=''">
+            offset ${page_num}
+        </if>
+    </select>
+
+    <select id="selEpisode">
+    SELECT e.id as "epi_id", e.no as "epi_no", e.title as "epi_title",
+           e.content_url as "epi_html_url", a.id as "author_id",
+           a.author_name, e.author_comment
+    FROM episode e left join (select id, author_id
+                         from work
+                         where id = ${work_id}) w on (e.work_id = w.id)
+                   left join author a on (w.author_id = a.id)
+    WHERE e.id = ${epi_id}                          
+  </select>
+
+    <select id="selEpiPrev">
+        select id
+        from episode e1 join (select no, work_id
+                              from episode
+                              where id = ${epi_id}) e2 on ((e1.work_id = e2.work_id AND e1.no = e2.no - 1))
+      </select>
+
+    <select id="selEpiNext">
+    select id
+    from episode e1 join (select no, work_id
+                          from episode 
+                          where id = ${epi_id}) e2 on (( e1.work_id = e2.work_id AND e1.no = e2.no + 1))
+  </select>
+
+    <select id="selEpiCommentTotal">
+    select count(*) as total_cnt
+    from epi_comment a
+    where 1=1
+    and a.episode_id = ${epi_id}
+  </select>
+
+    <select id="selEpiCommentList">
+        select a.id as id, a.user_id as user_id, b.nickname as user_name,
+        a.comment as comment, a.register_date as register_date,
+        (select count(1) from comment_preference s where s.comment_id=a.id and s.type='like') as like_count,
+        (select count(1) from comment_preference s where s.comment_id=a.id and s.type='hate') as hate_count,
+        case when ((select count(1) from comment_preference s where s.comment_id=a.id and s.user_id=b.id) != 0)
+        then true
+        else false
+        end as preference_yn
+        from epi_comment a left join user b on (a.user_id=b.id)
+        where episode_id = ${epi_id}
+        <if test="page_size != null and page_size !=''">
+            limit ${page_size}
+        </if>
+        <if test="page_num != null and page_num !=''">
+            offset ${page_num}
+        </if>
+    </select>
+
+    <insert id="insEpi">
+        insert into episode(work_id, title, no, content_url, author_comment)
+        values (${work_id}, #{title}, ${no}, '${content_url}', #{author_comment});
+    </insert>
+
+    <select id="selEpiUrl">
+        SELECT content_url as "epi_html_url"
+        FROM episode
+        WHERE 1=1
+        AND id = ${epi_id}
+        AND work_id = ${work_id}
+    </select>
+
+    <update id="upEpi">
+        UPDATE episode
+        SET  title = #{title},
+             no = ${no},
+             author_comment = #{author_comment}
+        WHERE 1=1
+          AND id = ${epi_id}
+          AND work_id = ${work_id}
+    </update>
+
+    <delete id="delEpi">
+        delete from episode
+        where id = ${epi_id}
+    </delete>
+
+    <delete id="delEpiCmt">
+        delete A from epi_comment A
+        LEFT JOIN episode B on A.episode_id = B.id
+        where B.id = ${epi_id}
+    </delete>
+
+    <delete id="delEpiCmtPfr">
+        delete A from comment_preference A
+        LEFT JOIN epi_comment B on A.comment_id = B.id
+        LEFT JOIN episode C on B.episode_id = C.id
+        where C.id = ${epi_id}
+    </delete>
+
+    <select id="checkPrefer">
+        select count(*) as count, type
+        from comment_preference
+        where comment_id = ${cmt_id}
+        and user_id = ${user_id}
+        group by type;
+    </select>
+
+    <insert id="insCmtPrefer">
+        insert into comment_preference(comment_id, user_id, type)
+        values (${cmt_id}, ${user_id}, ${type});
+    </insert>
+
+    <delete id="delEpiCommentPrefer">
+        delete from comment_preference
+        where comment_id = ${cmt_id}
+    </delete>
+
+    <insert id="insComment">
+        insert into epi_comment(episode_id, user_id, comment)
+        values (${epi_id}, ${user_id}, #{comment});
+    </insert>
+
+    <delete id="delComment">
+        delete from epi_comment
+        where user_id = ${user_id}
+        and episode_id = ${epi_id}
+        and id = ${cmt_id}
+    </delete>
+
+    <update id="upComment">
+        UPDATE epi_comment
+        SET  comment = #{comment}
+        WHERE 1=1
+          AND episode_id = ${epi_id}
+          AND user_id = ${user_id}
+          AND id = ${cmt_id}
+      </update>
+
+    <update id="updWorkDetail">
+        update work
+        set update_date = now()
+        <if test="day != null and day !=''">
+            ,weekday = #{day}
+        </if>
+        <if test="title != null and title !=''">
+            ,title = #{title}
+        </if>
+        <if test="intro != null and intro !=''">
+            ,intro = #{intro}
+        </if>
+        <if test="status != null and status !=''">
+            ,work_status = #{status}
+        </if>
+        <if test="authorId != null and authorId !=''">
+            ,author_id = ${authorId}
+        </if>
+        <if test="categoryId != null and categoryId !=''">
+            ,category_id = ${categoryId}
+        </if>
+        <if test="permission != null and permission !=''">
+            ,permission = #{permission}
+        </if>
+        where id = ${work_id}
+    </update>
+
+    <select id="selAuthorpotion">
+        select a.author_name as author_name, count(up.id) as potions
+        from episode e
+        left join used_potion up on e.id = up.used_epi_id
+        left join work w on e.work_id = w.id
+        left join author a on w.author_id = a.id
+        group by author_name
+
+        order by potions desc
+        <if test="page_size != null and page_size !=''">
+            limit ${page_size}
+        </if>
+        <if test="page_num != null and page_num !=''">
+            offset ${page_num}
+        </if>
+    </select>
+
+    <select id="selWorkpotion">
+        select w.title as work_title, a.author_name as author_name, count(up.id) as potions
+        from episode e
+        left join used_potion up on e.id = up.used_epi_id
+        left join work w on e.work_id = w.id
+        left join author a on w.author_id = a.id
+        group by work_title, author_name
+
+        order by potions desc
+        <if test="page_size != null and page_size !=''">
+            limit ${page_size}
+        </if>
+        <if test="page_num != null and page_num !=''">
+            offset ${page_num}
+        </if>
+    </select>
+
+    <select id="selAuthorpotionTotalCnt">
+        select count(*) as total_count
+        from (
+            select a.author_name as author_name, count(up.id) as potions
+            from episode e
+            left join used_potion up on e.id = up.used_epi_id
+            left join work w on e.work_id = w.id
+            left join author a on w.author_id = a.id
+            group by author_name
+        ) t
+    </select>
+
+    <select id="selWorkpotionTotalCnt">
+        select count(*) as total_count
+        from (
+             select w.title as work_title, a.author_name as author_name, count(up.id) as potions
+             from episode e
+                  left join used_potion up on e.id = up.used_epi_id
+                  left join work w on e.work_id = w.id
+                  left join author a on w.author_id = a.id
+             group by work_title, author_name
+             ) t
+    </select>
+
+    <select id="selCommentTimeDiff">
+      select timestampdiff(second, register_date, now()) as timeDiff
+      from epi_comment
+      where user_id = ${user_id} and episode_id = ${epi_id}
+      order by id desc
+      limit 1;
+   </select>
+
+    <select id="checkWorkPermission">
+        select w.permission
+        from work w
+        where w.id = #{work_id}
+    </select> -->
+</mapper>
