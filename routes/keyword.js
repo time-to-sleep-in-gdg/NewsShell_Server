@@ -8,7 +8,7 @@ var router = express.Router();
  *    get:
  *      tags:
  *      - keyword
- *      description: 메인 키워드. 
+ *      description: 메인 키워드. 키워드 상세, 타임라인, 기사 목록 조회.
  *      parameters:
  *        - in: path
  *          name: keywordId
