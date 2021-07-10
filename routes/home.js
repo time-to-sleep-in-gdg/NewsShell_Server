@@ -1,5 +1,7 @@
-var express = require('express');
-var router = express.Router();
+let express = require('express');
+let router = express.Router();
+let async = require('async');
+let mybatisMapper = require('../common/mybatis').mybatisMapper;
 
 /* GET home page. */
 /**
@@ -25,8 +27,11 @@ var router = express.Router();
  *              $ref: '#/components/schemas/Home'
  */
 
-router.get('/', function(req, res) {
-  res.status(200).json({
+router.route('/').get(function (req, res, next) {
+  let user_id = (req.query.userId !== undefined) ? req.query.userId : -1;
+
+  if (user_id != 1) {
+    return res.status(200).json({
       "user_nickname" : "tester_a",
       "alarm_cnt": 4,
       "categorys": [{
@@ -68,6 +73,120 @@ router.get('/', function(req, res) {
         "view_cnt": 45,
         "comment_cnt": 23
       }]
+    });
+  }
+
+  function getConnection(callback) {
+    req.database.getConnection(function (err, connection) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, connection);
+      }
+    });
+  }
+
+  function selHomeUserInfo(connection, callback) {
+    let param;
+    let query;
+    try {
+      param = {
+        user_id: user_id
+      };
+      query = mybatisMapper.getStatement('apiMapper', 'selHomeUserInfo', param, {language: 'sql', indent: '  '});
+
+    } catch (err) {
+      connection.release();
+      callback(err);
+    }
+
+    connection.query(query, function (err, homeUserInfo) {
+      if (err) {
+        connection.release();
+        callback(err);
+      } else {
+        callback(null, connection, homeUserInfo);
+      }
+    });
+  }
+
+  function selHomeCategoryList(connection, homeUserInfo, callback) {
+    let param;
+    let query;
+    try {
+      param = {
+      };
+      query = mybatisMapper.getStatement('apiMapper', 'selHomeCategoryList', param, {language: 'sql', indent: '  '});
+
+    } catch (err) {
+      connection.release();
+      callback(err);
+    }
+
+    connection.query(query, function (err, homeCategoryList) {
+      if (err) {
+        connection.release();
+        callback(err);
+      } else {
+        callback(null, connection, homeUserInfo, homeCategoryList);
+      }
+    });
+  }
+
+  function selHomeKeywordList(connection, homeUserInfo, homeCategoryList, callback) {
+    let param;
+    let query;
+    try {
+      param = {
+        user_id: user_id
+      };
+      query = mybatisMapper.getStatement('apiMapper', 'selHomeKeywordList', param, {language: 'sql', indent: '  '});
+
+    } catch (err) {
+      connection.release();
+      callback(err);
+    }
+
+    connection.query(query, function (err, homeKeywordList) {
+      connection.release();
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, homeUserInfo, homeCategoryList, homeKeywordList);
+      }
+    });
+  }
+
+  function resultJSON(homeUserInfo, homeCategoryList, homeKeywordList, callback) {
+    let result = {
+      "user_nickname" : homeUserInfo[0].user_nickname,
+      "alarm_cnt": homeUserInfo[0].alarm_cnt,
+      "categorys": homeCategoryList,
+      "keywords": homeKeywordList.map(function(i){
+        return {
+          "category_id": i.category_id,
+          "category_name": i.category_name,
+          "keyword_id": i.keyword_id,
+          "keyword_name": i.keyword_name,
+          "is_follow": i.is_follow,
+          "follow_cnt": i.follow_cnt,
+          "follow_user_profiles": i.follow_user_profiles.split(";", 3),
+          "view_cnt": i.view_cnt,
+          "comment_cnt": i.comment_cnt
+        }
+      })
+    };
+    callback(null, result);
+  }
+
+  async.waterfall([getConnection, selHomeUserInfo, selHomeCategoryList, selHomeKeywordList, resultJSON], function (err, result) {
+    if (err) {
+      let new_err = new Error('키워드 조회에 실패하였습니다');
+      new_err.status = err.status;
+      next(new_err);
+    } else {
+      res.json(result);
+    }
   });
 });
 
