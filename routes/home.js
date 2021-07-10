@@ -11,12 +11,6 @@ var router = express.Router();
  *      description: 메인 홈. 알람 수, 카테고리 리스트, 키워드 리스트 조회
  *      parameters:
  *        - in: query
- *          name: categoryId
- *          required: false
- *          schema:
- *            type: integer
- *            description: 카테고리 ID
- *        - in: query
  *          name: userId
  *          required: false
  *          schema:
@@ -57,7 +51,8 @@ router.get('/', function(req, res) {
           "https://t1.kakaocdn.net/kakaocorp/corp_thumbnail/Kakao.png",
           "https://t1.kakaocdn.net/kakaocorp/corp_thumbnail/Kakao.png"
         ],
-        "reaction_cnt": 6
+        "view_cnt": 45,
+        "comment_cnt": 23
       }, {
         "category_id": 2,
         "category_name": "경제",
@@ -70,7 +65,8 @@ router.get('/', function(req, res) {
           "https://t1.kakaocdn.net/kakaocorp/corp_thumbnail/Kakao.png",
           "https://t1.kakaocdn.net/kakaocorp/corp_thumbnail/Kakao.png"
         ],
-        "reaction_cnt": 6
+        "view_cnt": 45,
+        "comment_cnt": 23
       }]
   });
 });

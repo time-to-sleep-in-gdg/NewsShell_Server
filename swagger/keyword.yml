@@ -109,12 +109,5 @@ components:
                   type: integer
                 hate: 
                   type: integer
-            cloud_text:
-              type: array
-              items:
-                type: object
-                properties:
-                  priority:
-                    type: integer
-                  text:
-                    type: string
+            word_cloud_url:
+              type: string

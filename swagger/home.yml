@@ -41,5 +41,7 @@ components:
                 type: array
                 items:
                   type: string
-              reaction_cnt:
+              view_cnt:
+                type: integer
+              comment_cnt:
                 type: integer
