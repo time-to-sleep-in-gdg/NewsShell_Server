@@ -8,6 +8,7 @@ var { swaggerUi, specs } = require('./modules/swagger');
 var indexRouter = require('./routes/index');
 var homeRouter = require('./routes/home');
 var keywordRouter = require('./routes/keyword');
+var alarmRouter = require('./routes/alarm');
 
 var app = express();
 
@@ -25,6 +26,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use('/', indexRouter);
 app.use('/home', homeRouter);
 app.use('/keyword', keywordRouter);
+app.use('/alarm', alarmRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
