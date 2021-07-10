@@ -169,6 +169,11 @@ router.route('/:keyword_id').get(function (req, res, next) {   //.get('/:keyword
   }
 
   function resultJSON(keywordInfo, timelineList, callback) {
+    let timelineListRe = timelineList.map(function(i){
+      i.is_bookmark = Boolean(i.is_bookmark);
+      i.is_hot = Boolean(i.is_hot);
+      return i
+    });
     let result = {
       "alarm_cnt": keywordInfo[0].alarm_cnt,
       "category_name": keywordInfo[0].category_name,
@@ -176,28 +181,28 @@ router.route('/:keyword_id').get(function (req, res, next) {   //.get('/:keyword
       "keyword_name": keywordInfo[0].keyword_name,
       "last_updated_at": keywordInfo[0].last_updated_at,
       "is_follow": Boolean(keywordInfo[0].is_follow),
-      "follow_cnt": keywordInfo[0].follow_cnt,
+      "follow_cnt": parseInt(keywordInfo[0].follow_cnt),
       "follow_user_profiles": keywordInfo[0].follow_user_profiles.split(";", 3),
       "timeline": {
-        "new_article": timelineList[0],
-        "articles": timelineList.slice(1)
+        "new_article": timelineListRe[0],
+        "articles": timelineListRe.slice(1)
       },
       "graph": {
         "gender": {
-          "female": keywordInfo[0].graph_gender_f,
-          "male": keywordInfo[0].graph_gender_m
+          "female": parseInt(keywordInfo[0].graph_gender_f),
+          "male": parseInt(keywordInfo[0].graph_gender_m)
         },
         "age": {
-          "age10": keywordInfo[0].graph_age10,
-          "age20": keywordInfo[0].graph_age20,
-          "age30": keywordInfo[0].graph_age30,
-          "age40": keywordInfo[0].graph_age40,
-          "age50": keywordInfo[0].graph_age50,
-          "age60": keywordInfo[0].graph_age60,
+          "age10": parseInt(keywordInfo[0].graph_age10),
+          "age20": parseInt(keywordInfo[0].graph_age20),
+          "age30": parseInt(keywordInfo[0].graph_age30),
+          "age40": parseInt(keywordInfo[0].graph_age40),
+          "age50": parseInt(keywordInfo[0].graph_age50),
+          "age60": parseInt(keywordInfo[0].graph_age60),
         },
         "reaction": {
-          "like": keywordInfo[0].graph_reaction_like,
-          "hate": keywordInfo[0].graph_reaction_hate,
+          "like": parseInt(keywordInfo[0].graph_reaction_like),
+          "hate": parseInt(keywordInfo[0].graph_reaction_hate),
         },
         "word_cloud_url": keywordInfo[0].word_cloud_url
       }
