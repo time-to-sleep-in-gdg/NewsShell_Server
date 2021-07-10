@@ -51,7 +51,7 @@ create table `alarm` (
   user_id int(11) not null,
   type varchar(20) default null,
   title varchar(200) default null,
-  messaege varchar(200) default null,
+  message varchar(200) default null,
   create_datetime TIMESTAMP default CURRENT_TIMESTAMP,
   modified TIMESTAMP default CURRENT_TIMESTAMP
 );

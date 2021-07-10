@@ -1,5 +1,8 @@
+
+
 var createError = require('http-errors');
 var express = require('express');
+var dotenv = require('dotenv');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -9,6 +12,14 @@ var indexRouter = require('./routes/index');
 var homeRouter = require('./routes/home');
 var keywordRouter = require('./routes/keyword');
 var alarmRouter = require('./routes/alarm');
+var dotenv = require('dotenv');
+if (process.env.NODE_ENV == 'dev') {
+  dotenv.config({
+    path: path.resolve(process.cwd(), ".env")
+  });
+}
+var mysqlConnection = require('./common/db_pool')(process.env.DB_HOST, process.env.DB_USER, 
+  process.env.DB_PASSWORD, process.env.DB_DATABASE, process.env.DB_PORT);
 
 var app = express();
 
@@ -21,6 +32,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(function(req, res, next) {
+  req.database = mysqlConnection;
+  next();
+})
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use('/', indexRouter);
