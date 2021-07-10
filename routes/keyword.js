@@ -175,7 +175,7 @@ router.route('/:keyword_id').get(function (req, res, next) {   //.get('/:keyword
       "keyword_id": keywordInfo[0].keyword_id,
       "keyword_name": keywordInfo[0].keyword_name,
       "last_updated_at": keywordInfo[0].last_updated_at,
-      "is_follow": keywordInfo[0].is_follow,
+      "is_follow": Boolean(keywordInfo[0].is_follow),
       "follow_cnt": keywordInfo[0].follow_cnt,
       "follow_user_profiles": keywordInfo[0].follow_user_profiles.split(";", 3),
       "timeline": {
