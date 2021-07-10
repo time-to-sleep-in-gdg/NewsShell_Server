@@ -171,8 +171,8 @@ router.route('/').get(function (req, res, next) {
           "is_follow": i.is_follow,
           "follow_cnt": i.follow_cnt,
           "follow_user_profiles": i.follow_user_profiles.split(";", 3),
-          "view_cnt": i.view_cnt,
-          "comment_cnt": i.comment_cnt
+          "view_cnt": parseInt(i.view_cnt),
+          "comment_cnt": parseInt(i.comment_cnt)
         }
       })
     };
