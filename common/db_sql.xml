@@ -10,6 +10,55 @@
          order by create_datetime desc
     </select>
 
+    <select id="selHomeUserInfo">
+        select a.nickname as user_nickname
+             , b.cnt as alarm_cnt
+          from user a 
+          left join (select user_id, count(id) as cnt
+                       from alarm
+                      where user_id = ${user_id}
+                        and is_view = false
+                      group by 1
+                    ) b on a.id = b.user_id
+         where id = ${user_id}
+    </select>
+
+    <select id="selHomeCategoryList">
+        select category_id, category_name
+          from keyword 
+         where 1=1 
+         group by 1, 2
+         order by 1, 2
+    </select>
+
+    <select id="selHomeKeywordList">
+        select a.category_id as category_id
+             , a.category_name as category_name
+             , a.id as keyword_id
+             , a.name as keyword_name
+             , ifnull(c.is_follow, 0) as is_follow
+             , b.follow_cnt as follow_cnt
+             , b.follow_user_profiles as follow_user_profiles
+             , a.view_cnt as view_cnt
+             , d.comment_cnt as comment_cnt
+          from keyword a 
+          left join (select f.keyword_id, count(f.id) as follow_cnt, group_concat(u.profile_url separator ';') as follow_user_profiles
+                       from follow f 
+                       left join user u on f.user_id = u.id
+                      group by 1
+                    ) b on a.id = b.keyword_id
+          left join (select keyword_id, is_follow
+                       from follow 
+                      where user_id = ${user_id}
+                        and is_follow = 1
+                    ) c on a.id = c.keyword_id
+          left join (select keyword_id, sum(comment_cnt) as comment_cnt 
+                       from article a2 
+                    ) d on a.id = d.keyword_id
+         where 1=1 
+         order by view_cnt desc, id desc
+    </select>
+
     <!-- <select id="selWorkTotal">
         select count(*) as total_cnt
         from (select a.id, a.weekday, a.work_status, a.title, a.intro, b.id as "author_id", b.author_name as "author",
